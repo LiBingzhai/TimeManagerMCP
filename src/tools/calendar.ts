@@ -1,5 +1,5 @@
 import { GraphClient } from '../services/graphClient';
-import { CalendarEvent } from '../types';
+import { IEvent } from '../types';
 
 export class CalendarTools {
   private graphClient: GraphClient;
@@ -9,7 +9,9 @@ export class CalendarTools {
   }
 
   // 添加日程到日历
-  async addCalendarEvent(args: {
+  async addCalendarEvent(
+    token:string,
+    args: {
     subject: string;
     startDateTime: string;
     endDateTime: string;
@@ -18,7 +20,8 @@ export class CalendarTools {
     body?: string;
   }): Promise<{ success: boolean; eventId?: string; error?: string }> {
     try {
-      const event: CalendarEvent = {
+      // Adapt to the structure expected by graphClient
+      const graphEvent: any = {
         subject: args.subject,
         start: {
           dateTime: args.startDateTime,
@@ -31,19 +34,19 @@ export class CalendarTools {
       };
 
       if (args.location) {
-        event.location = {
+        graphEvent.location = {
           displayName: args.location
         };
       }
 
       if (args.body) {
-        event.body = {
+        graphEvent.body = {
           content: args.body,
           contentType: 'text'
         };
       }
 
-      const response = await this.graphClient.createEvent(event);
+      const response = await this.graphClient.createEvent(graphEvent);
       
       return {
         success: true,
@@ -62,13 +65,23 @@ export class CalendarTools {
   async getCalendarEvents(args: {
     startDate?: string;
     endDate?: string;
-  }): Promise<{ success: boolean; events?: CalendarEvent[]; error?: string }> {
+  }): Promise<{ success: boolean; events?: IEvent[]; error?: string }> {
     try {
       const response = await this.graphClient.getEvents(args.startDate, args.endDate);
       
+      // Adapt the response from graphClient to IEvent[]
+      const events: IEvent[] = response.value.map((e: any) => ({
+        id: e.id,
+        subject: e.subject,
+        start: e.start.dateTime,
+        end: e.end.dateTime,
+        location: e.location?.displayName,
+        body: e.body?.content
+      }));
+
       return {
         success: true,
-        events: response.value || []
+        events: events
       };
     } catch (error) {
       console.error('获取日历事件失败:', error);

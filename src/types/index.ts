@@ -1,46 +1,27 @@
 // 通用类型定义
 
-export interface CalendarEvent {
-  id?: string;
-  subject: string;
-  start: {
-    dateTime: string;
-    timeZone: string;
-  };
-  end: {
-    dateTime: string;
-    timeZone: string;
-  };
-  location?: {
-    displayName: string;
-  };
-  body?: {
-    content: string;
-    contentType: 'text' | 'html';
-  };
-}
+import { GraphClient } from "../services/graphClient";
 
-export interface EmailMessage {
+export interface IEmail {
   id: string;
   subject: string;
-  from: {
-    emailAddress: {
-      name: string;
-      address: string;
-    };
+  from?: {
+    name: string;
+    address: string;
   };
-  receivedDateTime: string;
+  received: string;
   isRead: boolean;
-  body: {
-    content: string;
-    contentType: 'text' | 'html';
-  };
-  toRecipients?: Array<{
-    emailAddress: {
-      name: string;
-      address: string;
-    };
-  }>;
+  body?: string;
+}
+
+export interface IEvent {
+  id?: string;
+  subject: string;
+  start: string;
+  end: string;
+  location?: string;
+  body?: string;
+  attendees?: string[];
 }
 
 export interface CourseSchedule {
@@ -74,4 +55,17 @@ export interface AcademicSystemConfig {
   baseUrl: string;
   username: string;
   password: string;
+}
+
+export interface ExchangeConfig {
+  exchangeUrl: string;
+  username: string;
+  password: string;
+  domain?: string;
+}
+
+export interface User{
+  token: string;
+  username: string;
+  email: GraphClient;
 }

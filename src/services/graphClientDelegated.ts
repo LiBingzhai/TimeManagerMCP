@@ -2,15 +2,13 @@ import { Client } from '@microsoft/microsoft-graph-client';
 import { ClientSecretCredential } from '@azure/identity';
 import { GraphConfig } from '../types';
 
-export class GraphClient {
+export class GraphClientDelegated {
   private client: Client;
   private credential: ClientSecretCredential;
-  private userEmail?: string;
-  private permissionType: 'delegated' | 'application';
+  private userEmail: string;
 
-  constructor(config: GraphConfig, userEmail?: string, permissionType: 'delegated' | 'application' = 'application') {
+  constructor(config: GraphConfig, userEmail: string) {
     this.userEmail = userEmail;
-    this.permissionType = permissionType;
     this.credential = new ClientSecretCredential(
       config.tenantId,
       config.clientId,
@@ -29,15 +27,11 @@ export class GraphClient {
     });
   }
 
-  // 日历相关方法
+  // 日历相关方法 - 使用用户特定端点
   async createEvent(event: any) {
     try {
-      const endpoint = this.permissionType === 'delegated' && this.userEmail 
-        ? `/users/${this.userEmail}/calendar/events`
-        : '/me/calendar/events';
-      
       const response = await this.client
-        .api(endpoint)
+        .api(`/users/${this.userEmail}/calendar/events`)
         .post(event);
       return response;
     } catch (error) {
@@ -48,11 +42,7 @@ export class GraphClient {
 
   async getEvents(startDate?: string, endDate?: string) {
     try {
-      const baseEndpoint = this.permissionType === 'delegated' && this.userEmail 
-        ? `/users/${this.userEmail}/calendar/events`
-        : '/me/calendar/events';
-      
-      let query = baseEndpoint;
+      let query = `/users/${this.userEmail}/calendar/events`;
       const params = new URLSearchParams();
       
       if (startDate) {
@@ -74,15 +64,11 @@ export class GraphClient {
     }
   }
 
-  // 邮件相关方法
+  // 邮件相关方法 - 使用用户特定端点
   async getUnreadEmails(top: number = 10) {
     try {
-      const endpoint = this.permissionType === 'delegated' && this.userEmail 
-        ? `/users/${this.userEmail}/messages`
-        : '/me/messages';
-      
       const response = await this.client
-        .api(endpoint)
+        .api(`/users/${this.userEmail}/messages`)
         .filter('isRead eq false')
         .top(top)
         .orderby('receivedDateTime desc')
@@ -96,12 +82,8 @@ export class GraphClient {
 
   async getEmailById(emailId: string) {
     try {
-      const endpoint = this.permissionType === 'delegated' && this.userEmail 
-        ? `/users/${this.userEmail}/messages/${emailId}`
-        : `/me/messages/${emailId}`;
-      
       const response = await this.client
-        .api(endpoint)
+        .api(`/users/${this.userEmail}/messages/${emailId}`)
         .get();
       return response;
     } catch (error) {

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth';
 
 // 加载环境变量
 dotenv.config();
@@ -14,6 +15,9 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 路由配置
+app.use('/auth', authRoutes);
 
 // 健康检查端点
 app.get('/health', (req, res) => {

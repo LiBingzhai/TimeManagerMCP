@@ -1,5 +1,5 @@
 import { GraphClient } from '../services/graphClient';
-import { EmailMessage } from '../types';
+import { IEmail } from '../types';
 
 export class EmailTools {
   private graphClient: GraphClient;
@@ -11,13 +11,22 @@ export class EmailTools {
   // 获取未读邮件
   async getUnreadEmails(args: {
     top?: number;
-  }): Promise<{ success: boolean; emails?: EmailMessage[]; error?: string }> {
+  }): Promise<{ success: boolean; emails?: IEmail[]; error?: string }> {
     try {
       const response = await this.graphClient.getUnreadEmails(args.top || 10);
       
+      const emails: IEmail[] = response.value.map((e: any) => ({
+        id: e.id,
+        subject: e.subject,
+        from: e.from?.emailAddress,
+        received: e.receivedDateTime,
+        isRead: e.isRead,
+        body: e.body?.content
+      }));
+
       return {
         success: true,
-        emails: response.value || []
+        emails: emails
       };
     } catch (error) {
       console.error('获取未读邮件失败:', error);
@@ -31,13 +40,22 @@ export class EmailTools {
   // 获取单个邮件详情
   async getEmailById(args: {
     emailId: string;
-  }): Promise<{ success: boolean; email?: EmailMessage; error?: string }> {
+  }): Promise<{ success: boolean; email?: IEmail; error?: string }> {
     try {
       const response = await this.graphClient.getEmailById(args.emailId);
       
+      const email: IEmail = {
+        id: response.id,
+        subject: response.subject,
+        from: response.from?.emailAddress,
+        received: response.receivedDateTime,
+        isRead: response.isRead,
+        body: response.body?.content
+      };
+
       return {
         success: true,
-        email: response
+        email: email
       };
     } catch (error) {
       console.error('获取邮件详情失败:', error);
