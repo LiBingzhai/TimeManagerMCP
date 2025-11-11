@@ -291,6 +291,10 @@ class BrowserEmulator:
             self._focusedpage = None
             self._pages = []
 
+    @property
+    def focusedpage(self):
+        return self._focusedpage
+
 
 if __name__ == "__main__":
     be = BrowserEmulator(headless=True)
